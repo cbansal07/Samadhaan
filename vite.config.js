@@ -12,4 +12,15 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    exclude: [
+      'express',
+      'mongoose',
+      'mongodb',
+      'cors',
+      'jsonwebtoken',
+      'bcryptjs',
+      'serverless-http'
+    ]
+  }
 });
