@@ -16,5 +16,8 @@
       "src": "/api/(.*)",
       "dest": "backend/server.js"
     }
-  ]
+  ],
+  "engines": {
+    "node": "18.x"
+  }
 }
