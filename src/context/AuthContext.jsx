@@ -1,45 +1,58 @@
-// 🌐 React Core
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { loginUser, registerUser } from '../services/api';
 
 const AuthContext = createContext(null);
 
+const getInitialUser = () => {
+  try {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  } catch (error) {
+    console.error("Failed to parse user from localStorage", error);
+    localStorage.removeItem('user');
+    return null;
+  }
+};
+
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+    const [user, setUser] = useState(getInitialUser());
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(false);
     const [skipped, setSkipped] = useState(false);
 
     const login = async (email, password) => {
-        const data = await loginUser({ email, password });
-        console.log("Login API response:", data);
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setToken(data.token);
-            setUser(data.user);
-            console.log("User object stored:", data.user);
-        } else if (data.msg) {
-            throw new Error(data.msg);
+        try {
+            const data = await loginUser({ email, password });
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                setToken(data.token);
+                setUser(data.user);
+            }
+            return data;
+        } catch (error) {
+            // The error from api.js is an ApiError. Its .message property is 
+            // already the user-friendly message from the server's 'msg' field.
+            // We re-throw a standard error to be caught by the UI component.
+            throw new Error(error.message);
         }
-        return data;
     };
 
     const register = async (userData) => {
-        const data = await registerUser(userData);
-        console.log("Register API response:", data);
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setToken(data.token);
-            setUser(data.user);
-            console.log("User object stored:", data.user);
-        } else if (data.msg) {
-            throw new Error(data.error || data.msg);
+        try {
+            const data = await registerUser(userData);
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                setToken(data.token);
+                setUser(data.user);
+            }
+            return data;
+        } catch (error) {
+            // Re-throw a standard error with the specific message from the server.
+            throw new Error(error.message);
         }
-        return data;
     };
-
 
     const logout = () => {
         localStorage.removeItem('token');
@@ -73,7 +86,7 @@ export function AuthProvider({ children }) {
         isSuperAdmin: user && user.role === 'super_admin',
         firstName: user ? user.firstName : 'Guest',
         departmentId: user ? user.departmentId : null,
-        isEmailVerified: true, // Assuming all users from the new DB are verified
+        isEmailVerified: true,
     };
 
     return (

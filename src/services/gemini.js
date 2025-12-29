@@ -29,7 +29,7 @@ async function fetchWithBackoff(url, options, retries = 5, delay = 1000) {
  * 🧠 Analyzes the grievance using Gemini AI
  */
 export async function analyzeGrievanceWithAI(title, description) {
-  const apiKey = "AIzaSyBBMoqz6styJi_2FTkoFOmmCXoOJvkJwSo"; // ⚠️ Local use only
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY; 
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   const ALL_CATEGORIES = [

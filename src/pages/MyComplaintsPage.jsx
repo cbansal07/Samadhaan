@@ -23,10 +23,9 @@ function MyComplaintsPage({ onNavigate }) {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    getGrievances()
+    getGrievances(user.id)
       .then(data => {
-        const userComplaints = data.filter(c => c.submitterUserId === user.id);
-        setMyComplaints(userComplaints);
+        setMyComplaints(data);
         setLoading(false);
       })
       .catch(err => {

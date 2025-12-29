@@ -20,12 +20,6 @@ function AuthPage({ onNavigate }) {
   const [departmentCode, setDepartmentCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [modal, setModal] = useState({
-    show: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +30,6 @@ function AuthPage({ onNavigate }) {
       if (isLoginMode) {
         await login(email, password);
       } else {
-        // Simple logic for determining role based on department code
         let role = "user";
         let deptId = null;
         if (departmentCode === "super999") {
@@ -44,7 +37,6 @@ function AuthPage({ onNavigate }) {
           deptId = "Super Admin";
         } else if (departmentCode) {
           role = "authority";
-          // A more robust solution would be to look up the department ID
           deptId = departmentCode;
         }
 
@@ -59,7 +51,11 @@ function AuthPage({ onNavigate }) {
         });
       }
     } catch (err) {
-      setError(err.message || "An error occurred.");
+      // Enhanced error handling to display detailed server messages
+      const errorMessage = err.response && err.response.data && err.response.data.msg
+        ? err.response.data.msg
+        : err.message || "An unexpected error occurred. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -73,17 +69,9 @@ function AuthPage({ onNavigate }) {
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse delay-300"></div>
       </div>
 
-      {/* Modals */}
+      {/* Error Modal */}
       <Modal show={!!error} onClose={() => setError(null)} title="Authentication Error" type="error">
-        <p>{error}</p>
-      </Modal>
-      <Modal
-        show={modal.show}
-        title={modal.title}
-        type={modal.type}
-        onClose={() => setModal((prev) => ({ ...prev, show: false }))}
-      >
-        <p>{modal.message}</p>
+        <p className="text-sm text-slate-300">{error}</p>
       </Modal>
 
       {/* Auth Card */}
@@ -94,7 +82,7 @@ function AuthPage({ onNavigate }) {
         whileHover={{ scale: 1.01 }}
         className="relative z-10 w-full max-w-md p-8 rounded-2xl backdrop-blur-2xl bg-white/10 border border-white/20 shadow-[0_0_40px_rgba(56,189,248,0.15)] overflow-visible"
       >
-        {/* Header */}
+         {/* Header */}
         <div className="flex flex-col items-center text-center mb-6 relative z-10">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
             <Globe className="h-10 w-10 text-cyan-400 drop-shadow-md" />

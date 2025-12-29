@@ -1,8 +1,16 @@
-const API_URL =
-  (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, ""); // default goes through Vite proxy to 5001
+const API_URL = '/api';
 
 const buildUrl = (endpoint) =>
   `${API_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+
+// Custom Error class to hold the server's response data
+class ApiError extends Error {
+  constructor(message, data) {
+    super(message);
+    this.name = 'ApiError';
+    this.data = data; // This will hold the full JSON response from the server
+  }
+}
 
 async function request(endpoint, options = {}) {
   const res = await fetch(buildUrl(endpoint), {
@@ -18,11 +26,13 @@ async function request(endpoint, options = {}) {
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
-    data = { message: text || "Non-JSON response from server" };
+    data = { msg: text || "Non-JSON response from server" };
   }
 
   if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
+    // The backend uses 'msg' for error details. Use that for the error message.
+    const errorMessage = data?.msg || `Request failed with status ${res.status}`;
+    throw new ApiError(errorMessage, data);
   }
 
   return data;
@@ -43,7 +53,10 @@ export const loginUser = (userData) => {
   });
 };
 
-export const getGrievances = () => request("/grievances");
+export const getGrievances = (userId) => {
+  const endpoint = userId ? `/grievances?userId=${userId}` : "/grievances";
+  return request(endpoint);
+};
 
 export const createGrievance = (grievanceData, token) => {
   return request("/grievances", {
